@@ -16,7 +16,6 @@ class Moderator(bridge.Cog):
         self.voice_cache = {}
 
     def setup_db(self):
-        # Настройки подключения к MySQL
         conn = mysql.connector.connect(
             host=DATABASE["host"],
             user=DATABASE["user"],
@@ -92,7 +91,6 @@ class Moderator(bridge.Cog):
         )
         ''')
         
-        # Создаем индексы для ускорения запросов
         cursor.execute('''
         CREATE INDEX IF NOT EXISTS idx_punishments_user ON punishments(user_id)
         ''')
@@ -103,7 +101,6 @@ class Moderator(bridge.Cog):
         CREATE INDEX IF NOT EXISTS idx_voice_activity_user ON voice_activity(user_id)
         ''')
         
-        # Заполняем таблицу типов наказаний
         punishment_types = [
             ('kick', False),
             ('ban', False),
@@ -155,14 +152,12 @@ class Moderator(bridge.Cog):
                         await user.remove_roles(role)
                     action = f"автоматический размут ({'чат' if punishment['name'] == 'temp_mute' else 'голос'})"
                 
-                # Помечаем наказание как отозванное
                 cursor.execute('''
                 UPDATE punishments 
                 SET revoked = TRUE, revoked_at = %s, revoked_by = %s
                 WHERE id = %s
                 ''', (now, self.bot.user.id, punishment['id']))
                 
-                # Логируем действие
                 if action:
                     await self.log_action(
                         user_id=punishment['user_id'],
@@ -196,7 +191,6 @@ class Moderator(bridge.Cog):
             now = datetime.utcnow()
             
             try:
-                # Выход из канала
                 if before.channel:
                     cursor.execute('''
                     UPDATE voice_activity 
@@ -204,7 +198,6 @@ class Moderator(bridge.Cog):
                     WHERE user_id = %s AND leave_time IS NULL
                     ''', (now, now, member.id))
                 
-                # Вход в канал
                 if after.channel:
                     cursor.execute('''
                     INSERT INTO voice_activity 
@@ -299,12 +292,10 @@ class Moderator(bridge.Cog):
             await self.update_user_data(user)
             await self.update_user_data(moderator)
             
-            # Получаем ID типа наказания
             punishment_type_id = await self.get_punishment_type_id(action_type.lower())
             if not punishment_type_id:
                 raise ValueError(f"Неизвестный тип наказания: {action_type}")
             
-            # Парсим длительность
             duration_seconds = None
             expires_at = None
             
@@ -315,7 +306,6 @@ class Moderator(bridge.Cog):
                 
                 expires_at = datetime.utcnow() + timedelta(seconds=duration_seconds)
             
-            # Сохраняем в базу данных
             cursor = self.db.cursor()
             cursor.execute('''
             INSERT INTO punishments 
@@ -330,7 +320,6 @@ class Moderator(bridge.Cog):
                 expires_at
             ))
             
-            # Применяем действие
             result = await self.execute_punishment_action(
                 guild=guild,
                 user=user,
@@ -343,7 +332,6 @@ class Moderator(bridge.Cog):
             
             self.db.commit()
             
-            # Логируем и отправляем подтверждение
             await self.handle_punishment_response(
                 interaction, user, moderator, action_type, reason, 
                 duration, result, expires_at
@@ -448,7 +436,6 @@ class Moderator(bridge.Cog):
         if not role:
             role = await guild.create_role(name=role_name)
             
-            # Настраиваем права для роли
             for channel in guild.channels:
                 try:
                     if isinstance(channel, discord.TextChannel) and role_name == "Muted":
@@ -462,7 +449,6 @@ class Moderator(bridge.Cog):
 
     async def handle_punishment_response(self, interaction, user, moderator, action_type, reason, duration, result, expires_at):
         """Обработка ответа после применения наказания"""
-        # Логируем действие
         log_details = (
             f"**Модератор:** {moderator.mention}\n"
             f"**Причина:** {reason}\n"
@@ -476,7 +462,6 @@ class Moderator(bridge.Cog):
             guild=interaction.guild
         )
         
-        # Отправляем подтверждение модератору
         embed = discord.Embed(
             title=f"Действие выполнено: {action_type.replace('_', ' ').title()}",
             description=result,
@@ -488,7 +473,6 @@ class Moderator(bridge.Cog):
         
         await interaction.response.send_message(embed=embed, ephemeral=True)
         
-        # Уведомляем пользователя (если возможно)
         try:
             notify_embed = discord.Embed(
                 title=f"К вам применено действие: {action_type.replace('_', ' ').title()}",
@@ -541,11 +525,9 @@ class Moderator(bridge.Cog):
         await self.update_user_data(user)
         cursor = self.db.cursor(dictionary=True)
         
-        # Получаем данные пользователя
         cursor.execute('SELECT * FROM users WHERE user_id = %s', (user.id,))
         user_data = cursor.fetchone()
         
-        # Получаем наказания
         cursor.execute('''
         SELECT pt.name, p.reason, p.expires_at, p.created_at 
         FROM punishments p
@@ -556,7 +538,6 @@ class Moderator(bridge.Cog):
         ''', (user.id,))
         punishments = cursor.fetchall()
         
-        # Получаем голосовую активность
         cursor.execute('''
         SELECT channel_name, join_time, leave_time 
         FROM voice_activity 
@@ -566,7 +547,6 @@ class Moderator(bridge.Cog):
         ''', (user.id,))
         voice_activity = cursor.fetchall()
         
-        # Создаем embed
         embed = discord.Embed(
             title=f"История пользователя {user.display_name}",
             description=f"ID: {user.id}\nАккаунт создан: {user.created_at.strftime('%Y-%m-%d')}",
@@ -574,7 +554,6 @@ class Moderator(bridge.Cog):
         )
         embed.set_thumbnail(url=user.display_avatar.url)
         
-        # Добавляем наказания
         if punishments:
             pun_text = []
             for p in punishments:
@@ -592,7 +571,6 @@ class Moderator(bridge.Cog):
         else:
             embed.add_field(name="Наказания", value="Нет данных", inline=False)
         
-        # Добавляем голосовую активность
         if voice_activity:
             voice_text = []
             for v in voice_activity:
