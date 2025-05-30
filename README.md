@@ -1,1 +1,1 @@
-"# Washi-MinecraftBot" 
+"# Washi-ModeratorBot" 
