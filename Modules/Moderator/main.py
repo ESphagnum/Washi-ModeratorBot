@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands, tasks
+from discord.ext import bridge, tasks
 from datetime import datetime, timedelta
 import mysql.connector
 import re
@@ -7,7 +7,7 @@ import os
 from config import DATABASE
 from typing import Optional, Union
 
-class Moderator(commands.Cog):
+class Moderator(bridge.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.db = self.setup_db()
@@ -189,7 +189,7 @@ class Moderator(commands.Cog):
         
         self.db.commit()
 
-    @commands.Cog.listener()
+    @bridge.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         if before.channel != after.channel:
             cursor = self.db.cursor()
@@ -518,7 +518,7 @@ class Moderator(commands.Cog):
         except:
             await interaction.channel.send(embed=error_embed)
 
-    @commands.slash_command(name="mod", description="Модераторские команды")
+    @bridge.slash_command(name="mod", description="Модераторские команды")
     async def mod(self, ctx):
         """Группа модераторских команд"""
         pass
