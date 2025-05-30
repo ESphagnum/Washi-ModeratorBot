@@ -1,0 +1,12 @@
+{
+    "error": {
+        "form_not_found": "Форма _{0}_ не найдена"
+    },
+    "log_embed_title": "Заполнена форма",
+    "btn_label": {
+        "form_button": "Заполнить"
+    },
+    "messages": {
+        "modal_response": "Спасибо за заполнение формы!\n\nВаши ответы:\n_{0}_"
+    }
+}

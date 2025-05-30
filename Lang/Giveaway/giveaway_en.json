@@ -1,0 +1,16 @@
+{
+    "error": {
+        "no_date": "❌ Specify a future date and time",
+        "incorrect_date_format": "❌ Incorrect date format. Use YYYY-MM-DD HH:MM"
+    },
+    "embed": {
+        "giveaway_title": "🎉 РОЗЫГРЫШ 🎉",
+        "giveaway_description": "Prize: **{0}**\nPost a reaction 🎉 to enter!",
+        "giveaway_footer": "The drawing will end {0}"
+    },
+    "messages": {
+        "сongratulations_in_the_general_channel": "🎉 Congratulations {0}! He won **{1}**!",
+        "congratulations_in_private_messages": "🎉 {0}, congratulations on your win! You have won **{1}**! An administrator will write to you shortly!",
+        "not_enough_participants": "❌ Not enough participants for the drawing"
+    }
+}

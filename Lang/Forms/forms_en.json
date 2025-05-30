@@ -1,0 +1,12 @@
+{
+    "error": {
+        "form_not_found": "Form _{0}_ not found"
+    },
+    "log_embed_title": "New Application",
+    "btn_label": {
+        "form_button": "Fill in"
+    },
+    "messages": {
+        "modal_response": "Thanks for filling out the form!\n\nYour answers:\n_{0}_"
+    }
+}
